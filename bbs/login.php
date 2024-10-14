@@ -1,4 +1,9 @@
 <?php
+// ini_set('display_errors', 1);
+// ini_set('display_startup_errors', 1);
+// error_reporting(E_ALL);
+
+// controller 역할
 include_once('./_common.php');
 
 if( function_exists('social_check_login_before') ){
@@ -6,7 +11,7 @@ if( function_exists('social_check_login_before') ){
 }
 
 $g5['title'] = '로그인';
-include_once('./_head.sub.php');
+$headSub = include_once('./_head.sub.php');
 
 $od_id = isset($_POST['od_id']) ? safe_replace_regex($_POST['od_id'], 'od_id') : '';
 
@@ -21,7 +26,7 @@ if ($is_member) {
         goto_url(G5_URL);
 }
 
-$login_url        = login_url($url);
+$login_url = login_url($url);
 $login_action_url = G5_HTTPS_BBS_URL."/login_check.php";
 
 // 로그인 스킨이 없는 경우 관리자 페이지 접속이 안되는 것을 막기 위하여 기본 스킨으로 대체
@@ -29,8 +34,22 @@ $login_file = $member_skin_path.'/login.skin.php';
 if (!file_exists($login_file))
     $member_skin_path   = G5_SKIN_PATH.'/member/basic';
 
-include_once($member_skin_path.'/login.skin.php');
+$loginMain = include_once($member_skin_path.'/login.skin.php');
 
 run_event('member_login_tail', $login_url, $login_action_url, $member_skin_path, $url);
 
-include_once('./_tail.sub.php');
+$tailSub = include_once('./_tail.sub.php');
+
+require '../vendor/autoload.php';
+
+use League\Plates\Engine;
+// 템플릿 엔진 초기화 (템플릿 파일들이 있는 폴더 경로 지정)
+$templates = new Engine(__DIR__ . '/../templates');
+
+$mainArgs = [
+    'head' => $headSub,
+    'login' => $loginMain,
+    'tail' => $tailSub
+];
+
+echo $templates->render('bbs/login/login', ['args' => $mainArgs]);
